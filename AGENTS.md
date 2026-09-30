@@ -22,7 +22,8 @@ The goal is to build an end-to-end analytics project covering:
 ## Git Rules
 
 - Never commit directly to `main` after project initialization.
-- Create a feature branch for each task.
+- Use a dedicated feature branch for each logical unit of work. If the current branch already matches the task scope, continue working on the current branch instead of creating another branch.
+- Never create or switch branches without explicit user approval.
 - Keep commits small and focused.
 - Use Conventional Commits.
 - Review `git status` and `git diff` before committing.
