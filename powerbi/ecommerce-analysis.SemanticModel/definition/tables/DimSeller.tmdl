@@ -1,0 +1,47 @@
+table DimSeller
+	lineageTag: 6b6b0c48-7b2a-439c-99c0-aec5dfdeedcc
+
+	column seller_id
+		dataType: string
+		lineageTag: efabe87b-f0b2-4477-b694-dfe865b91f88
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_zip_code_prefix
+		dataType: string
+		lineageTag: ccd35fff-89d5-4177-be7d-9e1110cdba1f
+		summarizeBy: none
+		sourceColumn: seller_zip_code_prefix
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_city
+		dataType: string
+		lineageTag: 9be3abdb-c795-4735-a6df-c8122aa59fe5
+		summarizeBy: none
+		sourceColumn: seller_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_state
+		dataType: string
+		lineageTag: 0698a787-ca75-4807-b3b1-780867639680
+		summarizeBy: none
+		sourceColumn: seller_state
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimSeller = m
+		mode: import
+		source =
+				let
+				    Source = stg_Sellers
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

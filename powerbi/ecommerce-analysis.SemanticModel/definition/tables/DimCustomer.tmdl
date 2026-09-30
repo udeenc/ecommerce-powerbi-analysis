@@ -1,0 +1,56 @@
+table DimCustomer
+	lineageTag: fae7bb53-4dbd-4681-907b-23f871b4efa5
+
+	column customer_id
+		dataType: string
+		lineageTag: f101775f-0982-4cca-a32c-d21ddd21b735
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_unique_id
+		dataType: string
+		lineageTag: 53c94b52-52a3-47de-a212-29b0f19a8ed6
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_zip_code_prefix
+		dataType: string
+		lineageTag: 418441e7-d17b-4927-960f-dc5fd419aea1
+		summarizeBy: none
+		sourceColumn: customer_zip_code_prefix
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_city
+		dataType: string
+		lineageTag: 3c1fa1d4-89e1-4c13-8093-ff298fd1d2a9
+		summarizeBy: none
+		sourceColumn: customer_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_state
+		dataType: string
+		lineageTag: eab92303-5f44-460a-9966-fe6d31b4b523
+		summarizeBy: none
+		sourceColumn: customer_state
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimCustomer = m
+		mode: import
+		source =
+				let
+				    Source = stg_Customers,
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"customer_zip_code_prefix", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

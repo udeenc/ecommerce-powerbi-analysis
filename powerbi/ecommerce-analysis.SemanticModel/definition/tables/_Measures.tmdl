@@ -1,0 +1,218 @@
+table _Measures
+	lineageTag: e4b6aff2-9b36-4641-b4e9-7ef1e3c20263
+
+	measure 'Total Sales' = SUM(FactSales[price])
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: c78ec719-a988-418b-ab76-d971f0a6de94
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Total Freight' = SUM(FactSales[freight_value])
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: b6e7d638-9e71-40e7-b412-034f9fea0f9c
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Sales + Freight' = [Total Sales] + [Total Freight]
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: db38fbcb-961a-4cee-99c9-ef898813f91f
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Total Orders' = DISTINCTCOUNT(FactSales[order_id])
+		formatString: 0
+		lineageTag: 5939dbb5-fc6a-4fa6-962b-924ff9bf984f
+
+	measure 'Item Sold' = COUNTROWS(FactSales)
+		formatString: 0
+		lineageTag: 494a10df-65ba-40ac-b12d-f1ead13fe078
+
+	measure 'Average Order Value' = ```
+			
+			DIVIDE(
+			    [Total Sales],
+			    [Total Orders]
+			)    
+			```
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 753580ae-fe93-490a-a961-2702e852b33a
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Average Item Price' = AVERAGE(FactSales[price])
+		formatString: "R$"\ #,0;-"R$"\ #,0;"R$"\ #,0
+		lineageTag: 4c09e01b-11ec-4339-9d03-736b9a5a8f40
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Order Customers' = DISTINCTCOUNT(FactSales[customer_id])
+		formatString: 0
+		lineageTag: 01335dbe-76c0-41d1-be16-2afa80a78f95
+
+	measure 'Unique Customers' = DISTINCTCOUNT(DimCustomer[customer_unique_id])
+		formatString: 0
+		lineageTag: 68a7fb08-71e1-4dc0-a1ce-e23257a30fdf
+
+	measure 'Total Payment Value' = SUM(FactPayments[payment_value])
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 075c8ecc-39d5-42e5-975b-b584527dcbd7
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure 'Payment Transactions' =
+			
+			COUNTROWS(FactPayments)
+		formatString: 0
+		lineageTag: cf007eb3-0898-4241-b12a-8206432531bf
+
+	measure 'Average Review Score' =
+			
+			AVERAGE(FactReviews[review_score])
+		formatString: 0.00
+		lineageTag: eaada84d-786a-43d3-a611-a07bc34bfaf0
+
+	measure 'Total Reviews' =
+			
+			COUNTROWS(FactReviews)
+		formatString: 0
+		lineageTag: 0b60ba09-3625-4731-97a8-9f32419dc8e9
+
+	measure 'Positive Review %' =
+			
+			DIVIDE(
+			    CALCULATE(
+			        COUNTROWS(FactReviews),
+			        FactReviews[review_score] >= 4
+			    ),
+			    [Total Reviews]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: d15d3e55-7462-42ba-ba82-8a25bab7d1b5
+
+	measure 'Freight % of Sales' =
+			
+			DIVIDE(
+			    [Total Freight],
+			    [Total Sales]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 0721451b-912a-466c-91d8-b8996336ed32
+
+	measure 'Average Delivery Days' =
+			
+			AVERAGEX(
+			    VALUES(FactSales[order_id]),
+			    CALCULATE(
+			        DATEDIFF(
+			            MIN(FactSales[order_purchase_timestamp]),
+			            MAX(FactSales[order_delivered_customer_date]),
+			            DAY
+			        )
+			    )
+			)
+		lineageTag: 72ddeeea-1f0c-486b-974e-c8cc4abdff17
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Late Deliveries' =
+			
+			COUNTROWS(
+			    FILTER(
+			        VALUES(FactSales[order_id]),
+			        CALCULATE(
+			            MAX(FactSales[order_delivered_customer_date])
+			        )
+			            >
+			        CALCULATE(
+			            MAX(FactSales[order_estimated_delivery_date])
+			        )
+			    )
+			)
+		formatString: 0
+		lineageTag: 3fc37842-f369-4a84-a54a-85c900d7d77e
+
+	measure 'Delivered Orders' =
+			
+			COUNTROWS(
+			    FILTER(
+			        VALUES(FactSales[order_id]),
+			        NOT ISBLANK(
+			            CALCULATE(
+			                MAX(FactSales[order_delivered_customer_date])
+			            )
+			        )
+			    )
+			)
+		formatString: 0
+		lineageTag: 3b6bd24b-63f6-438b-94f1-89f9c6b4ef61
+
+	measure 'Late Delivery %' =
+			
+			DIVIDE(
+			    [Late Deliveries],
+			    [Delivered Orders]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 4336f8c4-7928-4498-a84a-352ecc664c60
+
+	measure 'On-Time Delivery %' =
+			
+			1 - [Late Delivery %]
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: d76ac3e6-2746-4005-b461-e7101c9c11e1
+
+	measure 'Experience Orders' =
+			
+			COUNTROWS(FactOrderExperience)
+		formatString: 0
+		lineageTag: 24fccf28-41ad-469a-83e9-d96dcf637e95
+
+	measure 'Experience Avg Review' =
+			
+			AVERAGE(FactOrderExperience[AvgReviewScore])
+		lineageTag: 04434cde-0303-4717-bf76-20e6c98b9aea
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'On-Time Avg Review' =
+			
+			CALCULATE(
+			    [Experience Avg Review],
+			    FactOrderExperience[DeliveryStatus] = "On-Time"
+			)
+		lineageTag: 042921c5-00b0-4305-ae01-6407dbc1da5e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Late Avg Review' =
+			
+			CALCULATE(
+			    [Experience Avg Review],
+			    FactOrderExperience[DeliveryStatus] = "Late"
+			)
+		lineageTag: acd43e55-b490-4811-87b3-6fdd2130b5b9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Review Score Gap' =
+			
+			[On-Time Avg Review] - [Late Avg Review]
+		lineageTag: 6732195e-217a-486b-bf7f-b27f4fa67569
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Value
+		formatString: 0
+		lineageTag: 9cb3081d-bd95-469d-b654-cd503919e33a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = calculated
+		mode: import
+		source = { BLANK() }
+
+	annotation PBI_Id = b210bba00cdf4f49a04e14e897d287c6
+

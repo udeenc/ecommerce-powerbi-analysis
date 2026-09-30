@@ -1,0 +1,100 @@
+table FactPayments
+	lineageTag: 9f5a2f28-ca7f-41c8-81cb-a83df086539e
+
+	column order_id
+		dataType: string
+		lineageTag: 8563d0c0-fd94-42c8-89ad-70747b794b36
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_sequential
+		dataType: string
+		lineageTag: bcbed21e-9e42-48fd-9248-7e376a0c3628
+		summarizeBy: none
+		sourceColumn: payment_sequential
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_type
+		dataType: string
+		lineageTag: 6b0afe88-d22d-4aab-a821-7a2c8ba5242f
+		summarizeBy: none
+		sourceColumn: payment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_installments
+		dataType: string
+		lineageTag: 1b1266d6-4cbc-44b1-b3a2-e7c21ca323a3
+		summarizeBy: none
+		sourceColumn: payment_installments
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_value
+		dataType: decimal
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: f3caa683-33b2-43f1-a3b1-41b248e38599
+		summarizeBy: sum
+		sourceColumn: payment_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	column customer_id
+		dataType: string
+		lineageTag: 1f2ccf29-c134-4488-91fd-b01606eaa872
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: 8a74d6ab-3ed4-432d-a357-cc78726cff54
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_purchase_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ade56762-59b5-4125-8c2b-92dc48f51c6c
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 70adf115-0e7d-4926-ba73-6c06638125c4
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition FactPayments = m
+		mode: import
+		source =
+				let
+				    Source = stg_Payments,
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"payment_value", Currency.Type}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Changed Type", {"order_id"}, stg_Orders, {"order_id"}, "stg_Orders", JoinKind.LeftOuter),
+				    #"Expanded stg_Orders" = Table.ExpandTableColumn(#"Merged Queries", "stg_Orders", {"customer_id", "order_status", "order_purchase_timestamp"}, {"customer_id", "order_status", "order_purchase_timestamp"}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Expanded stg_Orders", "order_purchase_timestamp", "order_purchase_timestamp - Copy"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"order_purchase_timestamp - Copy", "OrderDate"}}),
+				    #"Extracted Date" = Table.TransformColumns(#"Renamed Columns",{{"OrderDate", DateTime.Date, type date}})
+				in
+				    #"Extracted Date"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

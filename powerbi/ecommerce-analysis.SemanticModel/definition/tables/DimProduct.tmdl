@@ -1,0 +1,120 @@
+table DimProduct
+	lineageTag: 23d634d0-1a26-4594-aeaa-24b2d295fbe3
+
+	column product_id
+		dataType: string
+		lineageTag: 17a48baa-d247-4cb0-9105-3ea59832cf87
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_category_name
+		dataType: string
+		lineageTag: 8b9ed0e9-54a2-43e7-b7b7-16c1472526b6
+		summarizeBy: none
+		sourceColumn: product_category_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name_lenght
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ead0492-c7ee-4a84-8680-70dcf4e96e5d
+		summarizeBy: none
+		sourceColumn: product_name_lenght
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_description_lenght
+		dataType: int64
+		formatString: 0
+		lineageTag: 83d11f28-229d-48a6-b70b-47a094570d64
+		summarizeBy: none
+		sourceColumn: product_description_lenght
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_photos_qty
+		dataType: int64
+		formatString: 0
+		lineageTag: f04655e7-4467-4a3d-955a-ccdedbc83bcc
+		summarizeBy: none
+		sourceColumn: product_photos_qty
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_weight_g
+		dataType: int64
+		formatString: 0
+		lineageTag: 68497d55-792d-41f2-bc3e-98dc1bd60590
+		summarizeBy: none
+		sourceColumn: product_weight_g
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_length_cm
+		dataType: int64
+		formatString: 0
+		lineageTag: 1c134f21-2efa-4799-91f8-f530eb9bb851
+		summarizeBy: none
+		sourceColumn: product_length_cm
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_height_cm
+		dataType: int64
+		formatString: 0
+		lineageTag: eb1fe00e-edeb-4eb8-9076-2439819a976c
+		summarizeBy: none
+		sourceColumn: product_height_cm
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_width_cm
+		dataType: int64
+		formatString: 0
+		lineageTag: fecd5849-1f98-4fe9-8f23-de53f6f63dbc
+		summarizeBy: none
+		sourceColumn: product_width_cm
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_category_name_english
+		dataType: string
+		lineageTag: 4a209520-0b0d-4cd6-b4c1-6df1fc72fc5a
+		summarizeBy: none
+		sourceColumn: product_category_name_english
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_category
+		dataType: string
+		lineageTag: dea6879d-0fb7-48a5-af29-f55b8a4d0250
+		summarizeBy: none
+		sourceColumn: product_category
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimProduct = m
+		mode: import
+		source =
+				let
+				    Source = stg_Products,
+				    #"Merged Queries" = Table.NestedJoin(Source, {"product_category_name"}, stg_CategoryTranslation, {"product_category_name"}, "stg_CategoryTranslation", JoinKind.LeftOuter),
+				    #"Expanded stg_CategoryTranslation" = Table.ExpandTableColumn(#"Merged Queries", "stg_CategoryTranslation", {"product_category_name_english"}, {"product_category_name_english"}),
+				    #"Added Custom" = Table.AddColumn(#"Expanded stg_CategoryTranslation", "product_category", each if [product_category_name_english] <> null
+				    and [product_category_name_english] <> "" then
+				    [product_category_name_english]
+				else if [product_category_name] <> null
+				    and [product_category_name] <> "" then
+				    [product_category_name]
+				else
+				    "Unknown")
+				in
+				    #"Added Custom"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

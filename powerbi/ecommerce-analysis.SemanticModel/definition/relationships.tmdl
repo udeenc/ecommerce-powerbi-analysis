@@ -1,0 +1,40 @@
+relationship AutoDetected_14420dcb-d4be-4877-849a-b1d2ddb77237
+	fromColumn: FactSales.customer_id
+	toColumn: DimCustomer.customer_id
+
+relationship AutoDetected_2a964469-c6d7-49a1-81ee-57b9e64b00c8
+	fromColumn: FactPayments.customer_id
+	toColumn: DimCustomer.customer_id
+
+relationship AutoDetected_b204760c-171f-4c6d-8d3f-3adc09e81ee2
+	fromColumn: FactReviews.customer_id
+	toColumn: DimCustomer.customer_id
+
+relationship AutoDetected_51e3280c-6ba9-4a0f-b592-6c701f39370f
+	fromColumn: FactSales.product_id
+	toColumn: DimProduct.product_id
+
+relationship AutoDetected_ea3da461-734e-441a-ab03-4ad5ab0ce311
+	fromColumn: FactSales.seller_id
+	toColumn: DimSeller.seller_id
+
+relationship e9b24a4a-01e9-acab-faf0-6ed81127ee16
+	fromColumn: FactSales.OrderDate
+	toColumn: DimDate.Date
+
+relationship 38b96d17-9851-dc68-f1e1-9bdb0eb11617
+	fromColumn: FactPayments.OrderDate
+	toColumn: DimDate.Date
+
+relationship b7e63906-8a49-560f-ab6e-23448305b0d9
+	fromColumn: FactReviews.OrderDate
+	toColumn: DimDate.Date
+
+relationship 1b10986a-25cf-1a92-6aed-d6c8e379fc08
+	fromColumn: FactOrderExperience.customer_id
+	toColumn: DimCustomer.customer_id
+
+relationship 736ded52-d5b4-f629-2e51-2c316b8aaaf0
+	fromColumn: FactOrderExperience.OrderDate
+	toColumn: DimDate.Date
+

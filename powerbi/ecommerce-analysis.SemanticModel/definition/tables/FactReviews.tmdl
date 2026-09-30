@@ -1,0 +1,143 @@
+table FactReviews
+	lineageTag: 142a431a-b74b-4031-98d3-1a9a1cec9b09
+
+	column review_id
+		dataType: string
+		lineageTag: 75af4edb-6f94-47df-8383-94503326f921
+		summarizeBy: none
+		sourceColumn: review_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		lineageTag: 2ac8606f-e504-4dad-9ab1-fae2032ccc3a
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_score
+		dataType: int64
+		formatString: 0
+		lineageTag: 49c47a5a-f0fd-43ef-81fa-4c76ea88fc00
+		summarizeBy: sum
+		sourceColumn: review_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_comment_title
+		dataType: string
+		lineageTag: 557cdb55-a04e-4dd4-8e2d-8ff11423f3db
+		summarizeBy: none
+		sourceColumn: review_comment_title
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_comment_message
+		dataType: string
+		lineageTag: e4ecbe2d-d6f0-4d7f-953a-82eeb7e6fe2b
+		summarizeBy: none
+		sourceColumn: review_comment_message
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_creation_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4f607110-3d1b-4551-8ebb-3bd6aae8e254
+		summarizeBy: none
+		sourceColumn: review_creation_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_answer_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 6427c8d7-1411-482f-90cc-9756c8253ff9
+		summarizeBy: none
+		sourceColumn: review_answer_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		lineageTag: a126bcdf-677e-40e3-86dc-8795afb5d5b8
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: 4762f7a9-1392-441c-b312-9350cdaf73b6
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_purchase_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b5423eb0-c52e-4fd8-aeac-3d16312f0361
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a3216b5b-b5a8-4c4c-9f44-b5fe7a477ce9
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ReviewCreationDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 759eae32-b271-4038-a854-e8d72382b71f
+		summarizeBy: none
+		sourceColumn: ReviewCreationDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ReviewAnswerDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 288b41e6-51c1-477a-adc6-7f5a99fe0307
+		summarizeBy: none
+		sourceColumn: ReviewAnswerDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition FactReviews = m
+		mode: import
+		source =
+				let
+				    Source = stg_Reviews,
+				    #"Merged Queries" = Table.NestedJoin(Source, {"order_id"}, stg_Orders, {"order_id"}, "stg_Orders", JoinKind.LeftOuter),
+				    #"Expanded stg_Orders" = Table.ExpandTableColumn(#"Merged Queries", "stg_Orders", {"customer_id", "order_status", "order_purchase_timestamp"}, {"customer_id", "order_status", "order_purchase_timestamp"}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Expanded stg_Orders", "order_purchase_timestamp", "order_purchase_timestamp - Copy"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"order_purchase_timestamp - Copy", "OrderDate"}}),
+				    #"Extracted Date" = Table.TransformColumns(#"Renamed Columns",{{"OrderDate", DateTime.Date, type date}}),
+				    #"Duplicated Column1" = Table.DuplicateColumn(#"Extracted Date", "review_creation_date", "review_creation_date - Copy"),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Duplicated Column1",{{"review_creation_date - Copy", "ReviewCreationDate"}}),
+				    #"Extracted Date1" = Table.TransformColumns(#"Renamed Columns1",{{"ReviewCreationDate", DateTime.Date, type date}}),
+				    #"Duplicated Column2" = Table.DuplicateColumn(#"Extracted Date1", "review_answer_timestamp", "review_answer_timestamp - Copy"),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Duplicated Column2",{{"review_answer_timestamp - Copy", "ReviewAnswerDate"}}),
+				    #"Extracted Date2" = Table.TransformColumns(#"Renamed Columns2",{{"ReviewAnswerDate", DateTime.Date, type date}})
+				in
+				    #"Extracted Date2"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

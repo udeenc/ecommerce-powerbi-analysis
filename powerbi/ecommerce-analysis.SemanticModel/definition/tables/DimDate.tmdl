@@ -1,0 +1,176 @@
+table DimDate
+	lineageTag: b454a94d-5162-43e9-858e-b0e7445446cf
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: Long Date
+		lineageTag: 19224f13-8f63-4d0f-b9ad-f1ea066462c4
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 11a2f438-0c16-4e25-a160-51b84a7658e6
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: string
+		lineageTag: ffe4d81e-6bf9-4a7a-9539-c1347ed3aa36
+		summarizeBy: none
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: 694aae9c-7f8a-4501-957c-fc8533d82e83
+		summarizeBy: sum
+		sourceColumn: MonthNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		lineageTag: 72bf4522-ca0a-4590-bfb2-1990341e31dc
+		summarizeBy: none
+		sourceColumn: MonthName
+		sortByColumn: MonthNumber
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonth
+		dataType: string
+		lineageTag: ad346069-a541-43ae-a6c7-468fcc4410c6
+		summarizeBy: none
+		sourceColumn: YearMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column Day
+		dataType: int64
+		formatString: 0
+		lineageTag: 34f7dbc7-2a39-42f0-9aa7-6a91dd01fc69
+		summarizeBy: sum
+		sourceColumn: Day
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayName
+		dataType: string
+		lineageTag: 9aa3b8a6-95d8-4eba-8b60-77ddfe33a80a
+		summarizeBy: none
+		sourceColumn: DayName
+		sortByColumn: DayOfWeek
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfWeek
+		dataType: int64
+		formatString: 0
+		lineageTag: 410937fa-f16b-4c5a-8357-68248f1afa36
+		summarizeBy: sum
+		sourceColumn: DayOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimDate = m
+		mode: import
+		source =
+				let
+				    StartDate = List.Min(FactSales[OrderDate]),
+				    EndDate = List.Max(FactSales[OrderDate]),
+				
+				    DateList = List.Dates(
+				        StartDate,
+				        Duration.Days(EndDate - StartDate) + 1,
+				        #duration(1, 0, 0, 0)
+				    ),
+				
+				    DateTable = Table.FromList(
+				        DateList,
+				        Splitter.SplitByNothing(),
+				        {"Date"}
+				    ),
+				
+				    ChangedType = Table.TransformColumnTypes(
+				        DateTable,
+				        {{"Date", type date}}
+				    ),
+				
+				    AddYear = Table.AddColumn(
+				        ChangedType,
+				        "Year",
+				        each Date.Year([Date]),
+				        Int64.Type
+				    ),
+				
+				    AddQuarter = Table.AddColumn(
+				        AddYear,
+				        "Quarter",
+				        each "Q" & Text.From(Date.QuarterOfYear([Date])),
+				        type text
+				    ),
+				
+				    AddMonthNumber = Table.AddColumn(
+				        AddQuarter,
+				        "MonthNumber",
+				        each Date.Month([Date]),
+				        Int64.Type
+				    ),
+				
+				    AddMonthName = Table.AddColumn(
+				        AddMonthNumber,
+				        "MonthName",
+				        each Date.MonthName([Date], "en-US"),
+				        type text
+				    ),
+				
+				    AddYearMonth = Table.AddColumn(
+				        AddMonthName,
+				        "YearMonth",
+				        each Date.ToText([Date], "yyyy-MM"),
+				        type text
+				    ),
+				
+				    AddDay = Table.AddColumn(
+				        AddYearMonth,
+				        "Day",
+				        each Date.Day([Date]),
+				        Int64.Type
+				    ),
+				
+				    AddDayName = Table.AddColumn(
+				        AddDay,
+				        "DayName",
+				        each Date.DayOfWeekName([Date], "en-US"),
+				        type text
+				    ),
+				
+				    AddDayOfWeek = Table.AddColumn(
+				        AddDayName,
+				        "DayOfWeek",
+				        each Date.DayOfWeek([Date], Day.Monday) + 1,
+				        Int64.Type
+				    )
+				in
+				    AddDayOfWeek
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
