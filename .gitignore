@@ -1,0 +1,20 @@
+# Raw dataset
+data/raw/*
+!data/raw/.gitkeep
+
+# Processed/generated data
+data/processed/*
+!data/processed/.gitkeep
+
+# Environment
+.env
+.env.*
+
+# Power BI temp
+*.tmp
+*.bak
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
