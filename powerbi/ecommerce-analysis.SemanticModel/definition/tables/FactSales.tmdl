@@ -1,0 +1,155 @@
+table FactSales
+	lineageTag: 52d6d5de-009f-4ec8-a649-1d0c6aa409cb
+
+	column order_id
+		dataType: string
+		lineageTag: 9b1bee3f-d241-4cd1-8770-7ea2cc57830a
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_item_id
+		dataType: string
+		lineageTag: 2b640333-3a31-4e7c-96de-5cfe0ba4d056
+		summarizeBy: none
+		sourceColumn: order_item_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: string
+		lineageTag: 5b5a5320-8997-486c-a286-f156981ab925
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: string
+		lineageTag: dfb6a95d-1b21-4692-91fe-652af539f8cd
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipping_limit_date
+		dataType: string
+		lineageTag: 6e422d9f-665e-4dd8-98e3-35b59b2d96ee
+		summarizeBy: none
+		sourceColumn: shipping_limit_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column price
+		dataType: decimal
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 654cb239-ad50-4807-979a-1d310bc49d15
+		summarizeBy: sum
+		sourceColumn: price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	column freight_value
+		dataType: decimal
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: c39dea3c-32c0-4aaa-81a0-00f72f494194
+		summarizeBy: sum
+		sourceColumn: freight_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	column customer_id
+		dataType: string
+		lineageTag: fe74bdf1-0c2b-4e24-8381-0e52a88c8499
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: 40549375-7490-4eee-a006-6e2fe8ac44e6
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_purchase_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1f4cf10f-381f-4b52-ae29-358b6322eb23
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_approved_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e2b5856b-7c03-4728-9a86-d4a6deb2160f
+		summarizeBy: none
+		sourceColumn: order_approved_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_carrier_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9fc11feb-403d-457d-9309-1aca04eee9a0
+		summarizeBy: none
+		sourceColumn: order_delivered_carrier_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_customer_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: afa4e99e-f7cb-4820-99e5-af4f965ef45d
+		summarizeBy: none
+		sourceColumn: order_delivered_customer_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_estimated_delivery_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e66b3290-809d-4f94-b743-8626580b9b02
+		summarizeBy: none
+		sourceColumn: order_estimated_delivery_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ca397fda-b744-442d-a2f6-431e61b78f3b
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition FactSales = m
+		mode: import
+		source =
+				let
+				    Source = stg_OrderItems,
+				    #"Merged Queries" = Table.NestedJoin(Source, {"order_id"}, stg_Orders, {"order_id"}, "stg_Orders", JoinKind.LeftOuter),
+				    #"Expanded stg_Orders" = Table.ExpandTableColumn(#"Merged Queries", "stg_Orders", {"customer_id", "order_status", "order_purchase_timestamp", "order_approved_at", "order_delivered_carrier_date", "order_delivered_customer_date", "order_estimated_delivery_date"}, {"customer_id", "order_status", "order_purchase_timestamp", "order_approved_at", "order_delivered_carrier_date", "order_delivered_customer_date", "order_estimated_delivery_date"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded stg_Orders",{{"price", Currency.Type}, {"freight_value", Currency.Type}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Changed Type", "order_purchase_timestamp", "order_purchase_timestamp - Copy"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"order_purchase_timestamp - Copy", "OrderDate"}}),
+				    #"Extracted Date" = Table.TransformColumns(#"Renamed Columns",{{"OrderDate", DateTime.Date, type date}})
+				in
+				    #"Extracted Date"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -18,3 +18,6 @@ data/processed/*
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Power BI local/cache files
+**/.pbi/

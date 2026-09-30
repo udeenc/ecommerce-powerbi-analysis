@@ -1,0 +1,26 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-ID
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["stg_Customers","stg_OrderItems","stg_Payments","stg_Reviews","stg_Orders","stg_Products","stg_Sellers","stg_CategoryTranslation","DimCustomer","DimProduct","DimSeller","FactSales","FactPayments","FactReviews","DimDate","FactOrderExperience","agg_OrderReviews"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table DimCustomer
+ref table DimProduct
+ref table DimSeller
+ref table FactSales
+ref table FactPayments
+ref table FactReviews
+ref table DimDate
+ref table _Measures
+ref table FactOrderExperience
+
+ref cultureInfo en-US
+

@@ -1,0 +1,131 @@
+table FactOrderExperience
+	lineageTag: f414bb25-2e54-4de8-8abc-76a6366c931e
+
+	column order_id
+		dataType: string
+		lineageTag: 044e56af-816c-4acf-a940-b747bea84f3e
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		lineageTag: a3d5df65-7ec1-4486-b8d4-7f0c5964a757
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: 22e90366-a241-46e5-87e9-470699b299bf
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_purchase_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 782dbd9d-7dab-4d96-89bc-f46a4324a407
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_customer_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d4885af9-db7d-40da-8ffd-a16be8557e79
+		summarizeBy: none
+		sourceColumn: order_delivered_customer_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_estimated_delivery_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3f15c213-6e2e-4da7-a6f0-aab40453c69c
+		summarizeBy: none
+		sourceColumn: order_estimated_delivery_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column AvgReviewScore
+		dataType: double
+		lineageTag: d586d111-cf11-4833-b8e0-5ab04afd078b
+		summarizeBy: sum
+		sourceColumn: AvgReviewScore
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DeliveryStatus
+		dataType: string
+		lineageTag: 936ef6dc-a0df-4b98-9db1-3276c807f7dc
+		summarizeBy: none
+		sourceColumn: DeliveryStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeliveryDays
+		dataType: string
+		lineageTag: db7ec27d-cbeb-4f95-928d-a4eb1aac0a71
+		summarizeBy: none
+		sourceColumn: DeliveryDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column DelayDays
+		dataType: string
+		lineageTag: 653f2c89-aaee-4d32-a672-556328510764
+		summarizeBy: none
+		sourceColumn: DelayDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 353fc34f-9e33-454d-96c6-57fa47c89a06
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition FactOrderExperience = m
+		mode: import
+		source =
+				let
+				    Source = stg_Orders,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"order_id", "customer_id", "order_status", "order_purchase_timestamp", "order_delivered_customer_date", "order_estimated_delivery_date"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Other Columns", {"order_id"}, agg_OrderReviews, {"order_id"}, "agg_OrderReviews", JoinKind.LeftOuter),
+				    #"Expanded agg_OrderReviews" = Table.ExpandTableColumn(#"Merged Queries", "agg_OrderReviews", {"AvgReviewScore"}, {"AvgReviewScore"}),
+				    #"Added Custom" = Table.AddColumn(#"Expanded agg_OrderReviews", "DeliveryStatus", each if [order_delivered_customer_date] = null then null
+				else if [order_delivered_customer_date] > [order_estimated_delivery_date]
+				then "Late"
+				else "On-Time"),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "DeliveryDays", each Duration.Days(
+				    [order_delivered_customer_date]
+				    - [order_purchase_timestamp]
+				)),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "DelayDays", each if [order_delivered_customer_date] = null then null
+				else
+				    Duration.Days(
+				        [order_delivered_customer_date]
+				        - [order_estimated_delivery_date]
+				    )),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Added Custom2", "order_purchase_timestamp", "order_purchase_timestamp - Copy"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"order_purchase_timestamp - Copy", "OrderDate"}}),
+				    #"Extracted Date" = Table.TransformColumns(#"Renamed Columns",{{"OrderDate", DateTime.Date, type date}})
+				in
+				    #"Extracted Date"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
